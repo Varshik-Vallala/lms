@@ -1,0 +1,35 @@
+
+pipeline {
+    agent any
+
+    environment {
+        GIT_REPO = 'https://github.com/Varshik-Vallala/jobbyApp.git'
+        BRANCH_NAME = 'master'  // Replace with your branch name
+        DOCKERHUB_CREDENTIALS=credentials('Docker')
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm: [$class: 'GitSCM', branches: [[name: env.BRANCH_NAME]], userRemoteConfigs: [[url: env.GIT_REPO]]]
+            }
+        }
+        stage('Build docker image') {
+            steps {  
+                sh 'docker build -t bunny59/job11:$BUILD_NUMBER .'
+            }
+        }
+        stage('login to dockerhub') {
+            steps{
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
+        stage('push image') {
+            steps{
+                sh 'docker push bunny59/job11:$BUILD_NUMBER'
+            }
+        }
+
+        // Other stages like build, test, etc.
+    }
+}
